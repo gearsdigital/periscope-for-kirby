@@ -1,0 +1,27 @@
+{
+  "name": "gearsdigital/periscope-for-kirby",
+  "description": "Kirby Panel plugin: configurable log file viewer",
+  "type": "kirby-plugin",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.3",
+    "getkirby/composer-installer": "^1.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0",
+    "getkirby/cms": "^4.0 || ^5.0"
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/KirbyTestCase.php"
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "getkirby/composer-installer": true
+    }
+  },
+  "extra": {
+    "installer-name": "periscope-for-kirby"
+  }
+}

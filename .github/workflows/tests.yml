@@ -1,0 +1,29 @@
+name: Tests
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: PHPUnit Tests (Kirby ${{ matrix.kirby }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        kirby: ['^4.0', '^5.0']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Require Kirby ${{ matrix.kirby }}
+        run: composer require --no-update --dev "getkirby/cms:${{ matrix.kirby }}"
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-security-blocking
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit
