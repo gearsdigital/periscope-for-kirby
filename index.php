@@ -61,6 +61,14 @@ require_once __DIR__ . '/lib/helpers.php';
  * broken.
  */
 Kirby::plugin('gearsdigital/periscope', [
+    'translations' => [
+        'de' => require __DIR__ . '/translations/de.php',
+        'en' => require __DIR__ . '/translations/en.php',
+        'fr' => require __DIR__ . '/translations/fr.php',
+        'nl' => require __DIR__ . '/translations/nl.php',
+        'pl' => require __DIR__ . '/translations/pl.php',
+    ],
+
     'options' => [
         'files'          => [],
         'folders'        => [],
@@ -72,7 +80,7 @@ Kirby::plugin('gearsdigital/periscope', [
     'areas' => [
         'log-viewer' => function () {
             return [
-                'label' => 'Logs',
+                'label' => t('periscope.logs', 'Logs'),
                 'icon'  => 'terminal',
                 'menu'  => true,
                 'link'  => 'log-viewer',
@@ -82,7 +90,7 @@ Kirby::plugin('gearsdigital/periscope', [
                         'action'  => function () {
                             return [
                                 'component' => 'k-periscope-view',
-                                'title'     => 'Logs',
+                                'title'     => t('periscope.logs', 'Logs'),
                                 'props'     => [
                                     'files' => array_map(
                                         fn (array $file) => ['id' => $file['id'], 'label' => $file['label']],
@@ -115,14 +123,14 @@ Kirby::plugin('gearsdigital/periscope', [
                 'action'  => function (string $id) {
                     $user = kirby()->user();
                     if ($user === null || $user->role()->permissions()->for('access', 'panel') === false) {
-                        throw new PermissionException('Access denied.');
+                        throw new PermissionException(t('periscope.accessDenied', 'Access denied.'));
                     }
 
                     $file = resolveFile($id);
                     $path = $file['path'];
 
                     if (is_file($path) === false || is_readable($path) === false) {
-                        throw new NotFoundException('Log file not available.');
+                        throw new NotFoundException(t('periscope.fileNotAvailable', 'Log file not available.'));
                     }
 
                     $filename = Str::slug($file['label']) . '-' . basename($path);

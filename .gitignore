@@ -1,5 +1,7 @@
 node_modules/
 vendor/
+kirby/
+.phpunit.result.cache
 *.log
 composer.lock
 package-lock.json

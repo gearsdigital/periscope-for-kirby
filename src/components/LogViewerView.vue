@@ -2,14 +2,14 @@
   <k-panel-inside>
     <k-view class="k-log-viewer-view">
       <k-header>
-        Logs
+        {{ $t("periscope.logs") }}
         <template #buttons>
           <k-button
             icon="copy"
             :disabled="filteredEntries.length === 0"
             @click="copyVisible"
           >
-            {{ copiedVisible ? "Kopiert" : "Sichtbare kopieren" }}
+            {{ copiedVisible ? $t("periscope.copied") : $t("periscope.copyVisible") }}
           </k-button>
           <k-button
             icon="download"
@@ -17,7 +17,7 @@
             target="_blank"
             :disabled="!canDownload"
           >
-            Herunterladen
+            {{ $t("periscope.download") }}
           </k-button>
           <k-button
             icon="refresh"
@@ -25,7 +25,7 @@
             :disabled="!selectedId || loading"
             @click="reload"
           >
-            Aktualisieren
+            {{ $t("periscope.refresh") }}
           </k-button>
         </template>
       </k-header>
@@ -33,14 +33,14 @@
       <k-box
         v-if="files.length === 0"
         theme="info"
-        text="Keine Log-Dateien konfiguriert. Siehe `gearsdigital.periscope.files` in der Kirby-Config."
+        :text="$t('periscope.noFilesConfigured')"
       />
 
       <template v-else>
         <div class="k-log-viewer-toolbar">
           <k-select-field
             name="log-viewer-file"
-            label="Datei"
+            :label="$t('periscope.file')"
             class="k-log-viewer-field"
             :options="fileOptions"
             :value="selectedId"
@@ -49,7 +49,7 @@
 
           <k-select-field
             name="log-viewer-limit"
-            label="Einträge pro Seite"
+            :label="$t('periscope.entriesPerPage')"
             class="k-log-viewer-field k-log-viewer-field--narrow"
             :options="limitFieldOptions"
             :value="limit"
@@ -58,25 +58,24 @@
 
           <label class="k-log-viewer-autorefresh">
             <input v-model="autoRefresh" type="checkbox" />
-            Auto-Refresh (10s)
+            {{ $t("periscope.autoRefresh") }}
           </label>
         </div>
 
         <p v-if="meta" class="k-log-viewer-meta">
           <template v-if="meta.exists && meta.readable">
-            Zuletzt geändert: {{ formatDate(meta.modified) }} · {{ formatSize(meta.size) }}
+            {{ $t("periscope.lastModified") }}: {{ formatDate(meta.modified) }} · {{ formatSize(meta.size) }}
           </template>
           <template v-else-if="meta.exists">
-            <k-icon type="alert" /> Datei existiert, ist aber nicht lesbar (Dateirechte prüfen).
+            <k-icon type="alert" /> {{ $t("periscope.fileNotReadable") }}
           </template>
           <template v-else>
-            <k-icon type="alert" /> Datei existiert (noch) nicht.
+            <k-icon type="alert" /> {{ $t("periscope.fileNotExists") }}
           </template>
         </p>
 
         <p v-if="meta && meta.minLevel" class="k-log-viewer-meta">
-          <k-icon type="filter" /> Nur Einträge ab Level „{{ levelMeta(meta.minLevel).label }}“ werden angezeigt
-          (Konfiguration <code>gearsdigital.periscope.minLevel</code>).
+          <k-icon type="filter" /> {{ $t("periscope.minLevelNotice", { level: levelMeta(meta.minLevel).label }) }}
         </p>
 
         <k-box v-if="error" theme="negative" :text="error" />
@@ -89,7 +88,7 @@
               :class="{ 'k-log-viewer-pill--active': !activeLevel }"
               @click="activeLevel = null"
             >
-              Alle <span class="k-log-viewer-pill-count">{{ entries.length }}</span>
+              {{ $t("periscope.all") }} <span class="k-log-viewer-pill-count">{{ entries.length }}</span>
             </button>
             <button
               v-for="stat in levelStats"
@@ -106,7 +105,7 @@
           </div>
           <k-search-input
             :value="search"
-            placeholder="Einträge durchsuchen …"
+            :placeholder="$t('periscope.searchPlaceholder')"
             font="monospace"
             class="k-log-viewer-search"
             @input="search = $event"
@@ -122,17 +121,17 @@
               :disabled="loadingMore"
               @click="loadMore"
             >
-              {{ loadingMore ? "Lade …" : "Ältere Einträge laden" }}
+              {{ loadingMore ? $t("periscope.loading") : $t("periscope.loadOlder") }}
             </button>
 
             <p v-if="!loading && entries.length === 0" class="k-log-viewer-empty">
-              {{ loading ? "Lade …" : "Keine Einträge." }}
+              {{ loading ? $t("periscope.loading") : $t("periscope.noEntries") }}
             </p>
 
             <div v-if="entries.length > 0 && filteredEntries.length === 0" class="k-log-viewer-empty">
-              Keine Treffer für den aktuellen Filter.
+              {{ $t("periscope.noMatches") }}
               <button type="button" class="k-log-viewer-reset" @click="resetFilters">
-                Filter zurücksetzen
+                {{ $t("periscope.resetFilters") }}
               </button>
             </div>
 
@@ -151,7 +150,7 @@
               <button
                 type="button"
                 class="k-log-viewer-copy"
-                title="Eintrag kopieren"
+                :title="$t('periscope.copyEntry')"
                 @click="copyEntry(entry)"
               >
                 <k-icon :type="copiedId === entry._id ? 'check' : 'copy'" />
@@ -164,7 +163,7 @@
                   class="k-log-viewer-toggle"
                   @click="toggleExpand(entry)"
                 >
-                  {{ isExpanded(entry) ? "Einklappen" : `+${entry.lineCount - 1} weitere Zeilen anzeigen` }}
+                  {{ isExpanded(entry) ? $t("periscope.collapse") : $t("periscope.showMoreLines", { count: entry.lineCount - 1 }) }}
                 </button>
               </div>
             </div>
@@ -176,7 +175,7 @@
             class="k-log-viewer-jump"
             @click="jumpToLatest"
           >
-            <k-icon type="angle-down" /> Neue Einträge
+            <k-icon type="angle-down" /> {{ $t("periscope.newEntries") }}
           </button>
         </div>
       </template>
@@ -186,13 +185,13 @@
 
 <script>
 const LEVEL_META = {
-  critical: { label: "Kritisch", theme: "negative", icon: "alert" },
-  error: { label: "Fehler", theme: "negative", icon: "alert" },
-  warning: { label: "Warnung", theme: "warning", icon: "bug" },
-  notice: { label: "Hinweis", theme: "notice", icon: "info" },
-  info: { label: "Info", theme: "info", icon: "info" },
-  debug: { label: "Debug", theme: "passive", icon: "code" },
-  plain: { label: "Sonstiges", theme: "passive", icon: null },
+  critical: { theme: "negative", icon: "alert" },
+  error: { theme: "negative", icon: "alert" },
+  warning: { theme: "warning", icon: "bug" },
+  notice: { theme: "notice", icon: "info" },
+  info: { theme: "info", icon: "info" },
+  debug: { theme: "passive", icon: "code" },
+  plain: { theme: "passive", icon: null },
 };
 
 const COLLAPSE_THRESHOLD = 8;
@@ -281,7 +280,7 @@ export default {
         if (!counts[level]) {
           continue;
         }
-        const meta = LEVEL_META[level];
+        const meta = this.levelMeta(level);
         stats.push({
           level,
           label: meta.label,
@@ -328,7 +327,8 @@ export default {
 
   methods: {
     levelMeta(level) {
-      return LEVEL_META[level] || LEVEL_META.plain;
+      const key = LEVEL_META[level] ? level : "plain";
+      return { ...LEVEL_META[key], label: this.$t(`periscope.level.${key}`) };
     },
 
     resetFilters() {
@@ -453,7 +453,7 @@ export default {
         }
       } catch (error) {
         if (requestId === this.requestId) {
-          this.error = error?.message || "Log konnte nicht geladen werden.";
+          this.error = error?.message || this.$t("periscope.loadError");
         }
       } finally {
         if (requestId === this.requestId) {
@@ -486,7 +486,7 @@ export default {
           this.copiedVisible = false;
         }, 1500);
       } catch (error) {
-        this.error = "Kopieren nicht möglich (Zwischenablage verweigert).";
+        this.error = this.$t("periscope.clipboardError");
       }
     },
 
@@ -501,7 +501,7 @@ export default {
           }
         }, 1500);
       } catch (error) {
-        this.error = "Kopieren nicht möglich (Zwischenablage verweigert).";
+        this.error = this.$t("periscope.clipboardError");
       }
     },
 
@@ -523,7 +523,7 @@ export default {
       if (!iso) {
         return "";
       }
-      return new Date(iso).toLocaleString("de-DE");
+      return new Date(iso).toLocaleString(this.$panel.translation.code || "en");
     },
   },
 };

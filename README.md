@@ -141,6 +141,8 @@ return [
 - Optional auto-refresh (10s).
 - Pagination that reads from the end of the file backwards, without loading
   the whole file into memory.
+- Panel UI translated into German, English, French, Dutch and Polish
+  (follows the Panel's language setting automatically).
 
 ## Security
 
