@@ -235,6 +235,24 @@ function levelSeverity(string $level): int
     return $index === false ? count($order) - 1 : $index;
 }
 
+/**
+ * Finds the last entry whose raw text matches $raw (the oldest entry the
+ * client already has), so pagination can anchor on content instead of a
+ * position counted from the file's end - a file that keeps growing between
+ * requests would otherwise shift what "offset N" points at and produce
+ * duplicated/skipped entries on "load older".
+ */
+function entryIndexBefore(array $entries, string $raw): ?int
+{
+    for ($i = count($entries) - 1; $i >= 0; $i--) {
+        if ($entries[$i]['raw'] === $raw) {
+            return $i;
+        }
+    }
+
+    return null;
+}
+
 function detectLevel(string $header): string
 {
     static $map = [

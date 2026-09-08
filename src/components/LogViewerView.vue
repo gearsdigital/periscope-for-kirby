@@ -388,13 +388,17 @@ export default {
         this.loadingMore = true;
       }
 
-      const offset = reset ? 0 : this.entries.length;
+      // Anchors "load older" on the oldest entry's own text instead of a
+      // position counted from the file's end - the file keeps growing
+      // between requests, so a plain entry count would drift and cause
+      // duplicated/skipped entries once new lines get appended.
+      const before = reset ? undefined : this.entries[0]?.raw;
       const requestId = ++this.requestId;
 
       try {
         const response = await this.$api.get(`log-viewer/files/${this.selectedId}`, {
           limit: this.limit,
-          offset,
+          before,
         });
 
         // Zwischenzeitlich hat sich Datei/Limit geändert – diese Antwort ist veraltet.

@@ -149,7 +149,13 @@ Kirby::plugin('gearsdigital/periscope', [
                     $readable = $exists && is_readable($path);
 
                     $limit    = clampEntries((int)get('limit', kirby()->option('gearsdigital.periscope.defaultEntries', 200)));
-                    $offset   = max(0, (int)get('offset', 0));
+                    // Raw text of the oldest entry the client already has, or
+                    // null for the newest window. Anchoring on content
+                    // instead of a position counted from the file's end
+                    // means a file that keeps growing between requests can't
+                    // shift what "the next page" points at (see
+                    // entryIndexBefore() in lib/helpers.php).
+                    $before   = get('before');
                     $minLevel = $file['minLevel'] ?? kirby()->option('gearsdigital.periscope.minLevel');
 
                     $entries = [];
@@ -162,29 +168,57 @@ Kirby::plugin('gearsdigital/periscope', [
                         // may be too tight for very large single entries
                         // (e.g. huge JSON dumps), in which case the 8 MB
                         // upper bound simply kicks in.
-                        $maxBytes = min(8_000_000, max(200_000, ($offset + $limit) * 4_000));
-                        $chunk    = readTailChunk($path, $maxBytes);
-                        $entries  = parseEntries($chunk['text'], $chunk['truncated']);
+                        $maxBytes   = max(200_000, $limit * 4_000);
+                        $anchorLost = false;
 
-                        // Server-side level filter: discards entries below
-                        // the minimum level for good before counting/pagination
-                        // kick in - not just a UI filter, the client never
-                        // sees them.
-                        if ($minLevel !== null) {
-                            $minSeverity = levelSeverity($minLevel);
-                            $entries     = array_values(array_filter(
-                                $entries,
-                                fn (array $e) => levelSeverity($e['level']) <= $minSeverity
-                            ));
-                        }
+                        do {
+                            $chunk   = readTailChunk($path, $maxBytes);
+                            $entries = parseEntries($chunk['text'], $chunk['truncated']);
 
-                        $total   = count($entries);
-                        $hasMore = ($offset + $limit) < $total || $chunk['truncated'];
-                        $entries = array_slice(
-                            $entries,
-                            max(0, $total - $offset - $limit),
-                            min($limit, max(0, $total - $offset))
-                        );
+                            // Server-side level filter: discards entries below
+                            // the minimum level for good before counting/pagination
+                            // kick in - not just a UI filter, the client never
+                            // sees them.
+                            if ($minLevel !== null) {
+                                $minSeverity = levelSeverity($minLevel);
+                                $entries     = array_values(array_filter(
+                                    $entries,
+                                    fn (array $e) => levelSeverity($e['level']) <= $minSeverity
+                                ));
+                            }
+
+                            if ($before === null) {
+                                break;
+                            }
+
+                            $cut = entryIndexBefore($entries, $before);
+                            if ($cut !== null) {
+                                $entries = array_slice($entries, 0, $cut);
+                                break;
+                            }
+
+                            // Anchor not found in this window yet - either the
+                            // whole file has been read (nothing left before
+                            // it, so treat as "no more") or the window needs
+                            // to grow to reach further back, up to the 8 MB
+                            // cap. If even that isn't enough, we can't tell
+                            // where "before" ends without risking already-
+                            // shown entries reappearing, so give up cleanly
+                            // rather than risk returning duplicates.
+                            if ($chunk['truncated'] === false || $maxBytes >= 8_000_000) {
+                                $entries    = [];
+                                $anchorLost = true;
+                                break;
+                            }
+
+                            $maxBytes = min(8_000_000, $maxBytes * 4);
+                        } while (true);
+
+                        // Entries beyond what's returned now, further back in
+                        // the current window or because it was cut off
+                        // before reaching the start of the file.
+                        $hasMore = $anchorLost ? false : (count($entries) > $limit || $chunk['truncated']);
+                        $entries = array_slice($entries, max(0, count($entries) - $limit));
                     }
 
                     return [

@@ -159,4 +159,20 @@ final class HelpersTest extends \KirbyTestCase
 
         resolveFile('does-not-exist');
     }
+
+    public function testEntryIndexBeforeFindsLastMatchingRaw(): void
+    {
+        $entries = [
+            ['level' => 'info', 'raw' => 'a'],
+            ['level' => 'info', 'raw' => 'b'],
+            ['level' => 'info', 'raw' => 'b'],
+            ['level' => 'info', 'raw' => 'c'],
+        ];
+
+        // Duplicate content: anchors on the occurrence closest to the end
+        // (the one the client actually saw), not the first match.
+        $this->assertSame(2, entryIndexBefore($entries, 'b'));
+        $this->assertSame(3, entryIndexBefore($entries, 'c'));
+        $this->assertNull(entryIndexBefore($entries, 'does-not-exist'));
+    }
 }
