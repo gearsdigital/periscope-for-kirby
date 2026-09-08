@@ -4,6 +4,8 @@ A configurable log file viewer for the Kirby Panel. Gives editors and
 developers a "Logs" menu item that tails one or more log files straight in
 the browser. No SSH, no FTP client, no tailing logs on a server console.
 
+![periscope-banner.webp](media/periscope-banner.webp)
+
 ## Contents
 
 - [Requirements](#requirements)
