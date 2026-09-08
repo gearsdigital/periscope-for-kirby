@@ -129,6 +129,28 @@ final class HelpersTest extends \KirbyTestCase
         rmdir($dir);
     }
 
+    public function testConfiguredFilesMatchesBracePatternWithoutRequiringGlobBrace(): void
+    {
+        $dir = sys_get_temp_dir() . '/periscope-folder-test-' . uniqid();
+        mkdir($dir);
+        file_put_contents($dir . '/app.log', 'log');
+        file_put_contents($dir . '/app.txt', 'txt');
+        file_put_contents($dir . '/app.json', 'json');
+
+        $this->kirbyWithOptions([
+            'gearsdigital.periscope.folders' => [
+                ['label' => 'Mixed', 'path' => $dir, 'pattern' => '*.{log,txt}'],
+            ],
+        ]);
+
+        $files = configuredFiles();
+
+        $this->assertCount(2, $files);
+
+        array_map('unlink', glob($dir . '/*'));
+        rmdir($dir);
+    }
+
     public function testResolveFileThrowsForUnknownId(): void
     {
         $this->kirbyWithOptions(['gearsdigital.periscope.files' => []]);

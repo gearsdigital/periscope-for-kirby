@@ -74,8 +74,10 @@ its own selectable entry, labelled `<label> – <filename>`, newest first. The
 folder is re-scanned on every request, so a new day's file shows up without
 a restart.
 
-`pattern` is passed straight to PHP's [`glob()`](https://www.php.net/glob)
-(with `GLOB_BRACE`), so standard glob syntax works:
+`pattern` is passed straight to PHP's [`glob()`](https://www.php.net/glob),
+so standard glob syntax works. `{a,b}` brace expansion is supported too
+(`GLOB_BRACE` is only enabled when the pattern actually contains `{`, since
+it isn't reliably available on every platform):
 
 | Pattern | Matches |
 |---------|---------|

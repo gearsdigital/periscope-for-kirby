@@ -38,7 +38,11 @@ function configuredFiles(): array
         $folder  = $entry['path'] instanceof \Closure ? $entry['path']() : $entry['path'];
         $pattern = $entry['pattern'] ?? '*.log';
 
-        $matches = glob(rtrim($folder, '/') . '/' . $pattern, GLOB_BRACE) ?: [];
+        // GLOB_BRACE only when actually needed - not reliably supported on
+        // every platform (e.g. some musl/Alpine builds), so a plain pattern
+        // like '*.log' must not depend on it.
+        $flags   = str_contains($pattern, '{') ? GLOB_BRACE : 0;
+        $matches = glob(rtrim($folder, '/') . '/' . $pattern, $flags) ?: [];
         rsort($matches); // Newest first - works for date-based filenames like YYYY-MM-DD.log
 
         foreach ($matches as $match) {
@@ -89,7 +93,7 @@ function resolveFile(string $id): array
         }
     }
 
-    throw new NotFoundException('Unknown log file: ' . $id);
+    throw new NotFoundException(t('periscope.unknownLogFile', 'Unknown log file: ') . $id);
 }
 
 function clampEntries(int $entries): int

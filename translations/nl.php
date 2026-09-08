@@ -4,6 +4,7 @@ return [
     'periscope.logs'              => 'Logs',
     'periscope.accessDenied'      => 'Toegang geweigerd.',
     'periscope.fileNotAvailable'  => 'Logbestand niet beschikbaar.',
+    'periscope.unknownLogFile'    => 'Onbekend logbestand: ',
 
     'periscope.copied'            => 'Gekopieerd',
     'periscope.copyVisible'       => 'Zichtbare kopiëren',
