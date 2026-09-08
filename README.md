@@ -74,6 +74,18 @@ its own selectable entry, labelled `<label> – <filename>`, newest first. The
 folder is re-scanned on every request, so a new day's file shows up without
 a restart.
 
+`pattern` is passed straight to PHP's [`glob()`](https://www.php.net/glob)
+(with `GLOB_BRACE`), so standard glob syntax works:
+
+| Pattern | Matches |
+|---------|---------|
+| `*.log` | All `.log` files (default) |
+| `kirby-*.log` | Only files starting with `kirby-`, e.g. `kirby-2026-09-08.log` |
+| `access.log*` | `access.log`, `access.log.1`, `access.log.gz`, ... |
+| `[0-9]*.log` | Files starting with a digit |
+| `202?-*.log` | `?` matches a single character, e.g. `2026-01.log` |
+| `*.{log,txt}` | Multiple extensions, e.g. `.log` and `.txt` |
+
 ### Minimum log level
 
 `minLevel` discards entries below the given severity **on the server**,
@@ -91,6 +103,32 @@ to least severe: `critical`, `error`, `warning`, `notice`, `info`, `debug`.
 | `defaultEntries` | `200` | Entries loaded per page on first load |
 | `maxEntries` | `2000` | Hard upper bound for `defaultEntries` and the panel's page-size selector |
 | `minLevel` | `null` | Global minimum log level (see above), overridable per file/folder |
+
+Example for an environment-specific config file (e.g. `site/config/config.example.com.php`)
+using every option:
+
+```php
+// site/config/config.example.com.php
+return [
+    'gearsdigital.periscope' => [
+        'files' => [
+            ['label' => 'PHP Errors', 'path' => '/var/log/php_errorlog'],
+            ['label' => 'Spam Guard', 'path' => '/var/log/spam.log', 'minLevel' => 'warning'],
+        ],
+        'folders' => [
+            [
+                'label'    => 'Server-Logs',
+                'path'     => fn () => '/home/log',
+                'pattern'  => '*.log',
+                'minLevel' => 'warning',
+            ],
+        ],
+        'defaultEntries' => 200,
+        'maxEntries'     => 2000,
+        'minLevel'       => 'error',
+    ],
+];
+```
 
 ## Features
 

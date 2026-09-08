@@ -38,7 +38,7 @@ function configuredFiles(): array
         $folder  = $entry['path'] instanceof \Closure ? $entry['path']() : $entry['path'];
         $pattern = $entry['pattern'] ?? '*.log';
 
-        $matches = glob(rtrim($folder, '/') . '/' . $pattern) ?: [];
+        $matches = glob(rtrim($folder, '/') . '/' . $pattern, GLOB_BRACE) ?: [];
         rsort($matches); // Newest first - works for date-based filenames like YYYY-MM-DD.log
 
         foreach ($matches as $match) {
